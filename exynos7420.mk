@@ -21,5 +21,5 @@ PRODUCT_PACKAGES += \
 # Keymaster
 ifeq ($(BOARD_USES_TRUST_KEYMASTER), true)
 PRODUCT_PACKAGES += \
-	keystore.exynos5
+	keystore.exynos7
 endif

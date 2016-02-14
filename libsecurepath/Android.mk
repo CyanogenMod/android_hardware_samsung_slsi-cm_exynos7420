@@ -30,7 +30,7 @@ LOCAL_SRC_FILES	+= 	\
 	sec_g2ddrm.cpp
 
 LOCAL_C_INCLUDES += \
-	$(LOCAL_PATH)/../../exynos5/include \
+	$(LOCAL_PATH)/../../exynos7/include \
 	$(TOP)/hardware/samsung_slsi-cm/exynos/include
 
 LOCAL_SHARED_LIBRARIES += libMcClient

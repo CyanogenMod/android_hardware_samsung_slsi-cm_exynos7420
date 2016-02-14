@@ -25,14 +25,14 @@ LOCAL_SHARED_LIBRARIES := liblog libcutils libion libutils
 LOCAL_C_INCLUDES := \
 	$(LOCAL_PATH)/../include \
 	$(TOP)/hardware/samsung_slsi-cm/exynos/include \
-	$(TOP)/hardware/samsung_slsi-cm/exynos5/include
+	$(TOP)/hardware/samsung_slsi-cm/exynos7/include
 
 LOCAL_SRC_FILES := 	\
 	gralloc.cpp 	\
 	framebuffer.cpp \
 	mapper.cpp
 
-LOCAL_MODULE := gralloc.exynos5
+LOCAL_MODULE := gralloc.exynos7
 LOCAL_CFLAGS:= -DLOG_TAG=\"gralloc\"
 LOCAL_MODULE_TAGS := optional
 LOCAL_MODULE_OWNER := samsung_arm
