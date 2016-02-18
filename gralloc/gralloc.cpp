@@ -379,8 +379,13 @@ static int gralloc_alloc(alloc_device_t* dev,
     if (!pHandle || !pStride || w <= 0 || h <= 0)
         return -EINVAL;
 
-    if( (usage & GRALLOC_USAGE_SW_READ_MASK) == GRALLOC_USAGE_SW_READ_OFTEN )
+    if( (usage & GRALLOC_USAGE_SW_READ_MASK) == GRALLOC_USAGE_SW_READ_OFTEN ) {
         ion_flags = ION_FLAG_CACHED | ION_FLAG_CACHED_NEEDS_SYNC | ION_FLAG_PRESERVE_KMAP;
+#if defined(__aarch64__)
+        if (usage & GRALLOC_USAGE_HW_RENDER)
+            ion_flags |= 0x20;
+#endif
+    }
 
     private_module_t* m = reinterpret_cast<private_module_t*>
         (dev->common.module);
