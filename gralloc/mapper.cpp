@@ -56,11 +56,14 @@ static int gralloc_map(gralloc_module_t const* module, buffer_handle_t handle)
     case HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SP_M:
         chroma_size = hnd->stride * ALIGN(hnd->vstride / 2, 8) + ext_size;
         break;
+    case HAL_PIXEL_FORMAT_RGBA_8888:
+    case HAL_PIXEL_FORMAT_RGBX_8888:
     case HAL_PIXEL_FORMAT_EXYNOS_YV12_M:
     case HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_P_M:
         chroma_size = (hnd->vstride / 2) * ALIGN(hnd->stride / 2, 16) + ext_size;
         break;
     default:
+        ALOGE("%s: unknown format: 0x%x", __func__, hnd->format);
         break;
     }
 
@@ -105,11 +108,14 @@ static int gralloc_unmap(gralloc_module_t const* module, buffer_handle_t handle)
     case HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_SP_M:
         chroma_size = hnd->stride * ALIGN(hnd->vstride / 2, 8) + ext_size;
         break;
+    case HAL_PIXEL_FORMAT_RGBA_8888:
+    case HAL_PIXEL_FORMAT_RGBX_8888:
     case HAL_PIXEL_FORMAT_EXYNOS_YV12_M:
     case HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_P_M:
         chroma_size = (hnd->vstride / 2) * ALIGN(hnd->stride / 2, 16) + ext_size;
         break;
     default:
+        ALOGE("%s: unknown format: 0x%x", __func__, hnd->format);
         break;
     }
 
