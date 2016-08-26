@@ -392,7 +392,7 @@ __MC_CLIENT_LIB_API mcResult_t mcOpenSession(
         SEND_TO_DAEMON(devCon, MC_DRV_CMD_OPEN_SESSION,
                        session->deviceId,
                        *uuid,
-                       (uintptr_t)(tci) & 0xFFF,
+                       static_cast<uint32_t>((uintptr_t)(tci)),
                        (uint32_t)handle,
                        len);
 
@@ -574,7 +574,7 @@ __MC_CLIENT_LIB_API mcResult_t mcOpenTrustlet(
                        session->deviceId,
                        spid,
                        (uint32_t)tlen,
-                       (uintptr_t)(tci) & 0xFFF,
+                       static_cast<uint32_t>((uintptr_t)(tci)),
                        (uint32_t)handle,
                        len);
 
@@ -769,7 +769,7 @@ __MC_CLIENT_LIB_API mcResult_t mcOpenGPTA(
         SEND_TO_DAEMON(devCon, MC_DRV_CMD_OPEN_TRUSTED_APP,
                        session->deviceId,
                        *uuid,
-                       (uintptr_t)(tci) & 0xFFF,
+                       static_cast<uint32_t>((uintptr_t)(tci)),
                        (uint32_t)handle,
                        len);
 
@@ -1219,7 +1219,7 @@ __MC_CLIENT_LIB_API mcResult_t mcMap(
                        session->sessionId,
                        (uint32_t)bulkBuf->handle,
                        (uint32_t)0,
-                       (uintptr_t)(bulkBuf->virtAddr) & 0xFFF,
+                       static_cast<uint32_t>((uintptr_t)(bulkBuf->virtAddr)),
                        bulkBuf->len);
 
         // Read command response
@@ -1311,7 +1311,7 @@ __MC_CLIENT_LIB_API mcResult_t mcUnmap(
         SEND_TO_DAEMON(devCon, MC_DRV_CMD_UNMAP_BULK_BUF,
                        session->sessionId,
                        handle,
-                       (uintptr_t)(mapInfo->sVirtualAddr),
+                       static_cast<uint32_t>((uintptr_t)(mapInfo->sVirtualAddr)),
                        mapInfo->sVirtualLen);
 
         RECV_FROM_DAEMON(devCon, &mcResult);
