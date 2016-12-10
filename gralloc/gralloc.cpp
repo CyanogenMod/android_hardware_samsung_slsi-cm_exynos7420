@@ -126,6 +126,9 @@ static unsigned int _select_heap(int usage)
     unsigned int heap_mask;
     if (usage & GRALLOC_USAGE_PROTECTED)
         heap_mask = ION_HEAP_EXYNOS_CONTIG_MASK;
+    else if (!(usage & GRALLOC_USAGE_HW_VIDEO_ENCODER)
+            && (usage & (GRALLOC_USAGE_HW_FB | GRALLOC_USAGE_HW_COMPOSER)))
+        heap_mask = ION_HEAP_TYPE_DMA_MASK;
     else
         heap_mask = ION_HEAP_SYSTEM_MASK;
 
@@ -374,13 +377,19 @@ static int gralloc_alloc(alloc_device_t* dev,
     int stride;
     int err;
     unsigned int ion_flags = 0;
+    unsigned int priv_heap_flag, heap_mask = 0;
     private_handle_t *hnd = NULL;
 
     if (!pHandle || !pStride || w <= 0 || h <= 0)
         return -EINVAL;
 
-    if( (usage & GRALLOC_USAGE_SW_READ_MASK) == GRALLOC_USAGE_SW_READ_OFTEN )
-        ion_flags = ION_FLAG_CACHED | ION_FLAG_CACHED_NEEDS_SYNC | ION_FLAG_PRESERVE_KMAP;
+    heap_mask = _select_heap(usage);
+    if (heap_mask == ION_HEAP_TYPE_DMA_MASK)
+        priv_heap_flag = private_handle_t::PRIV_FLAGS_USES_ION_DMA_HEAP;
+
+    if (heap_mask != ION_HEAP_TYPE_DMA_MASK &&
+        (usage & GRALLOC_USAGE_SW_READ_MASK) == GRALLOC_USAGE_SW_READ_OFTEN)
+        ion_flags = ION_FLAG_CACHED | ION_FLAG_CACHED_NEEDS_SYNC;
 
     private_module_t* m = reinterpret_cast<private_module_t*>
         (dev->common.module);
