@@ -78,6 +78,11 @@ extern int gralloc_lock(gralloc_module_t const* module,
                         int l, int t, int w, int h,
                         void** vaddr);
 
+extern int gralloc_lock_ycbcr(gralloc_module_t const* module,
+                        buffer_handle_t handle, int usage,
+                        int l, int t, int w, int h,
+                        struct android_ycbcr *ycbcr);
+
 extern int gralloc_unlock(gralloc_module_t const* module,
                           buffer_handle_t handle);
 
@@ -107,6 +112,7 @@ base: {
     registerBuffer: gralloc_register_buffer,
     unregisterBuffer: gralloc_unregister_buffer,
     lock: gralloc_lock,
+    lock_ycbcr: gralloc_lock_ycbcr,
     unlock: gralloc_unlock,
 },
 framebuffer: 0,
@@ -244,6 +250,7 @@ static int gralloc_alloc_framework_yuv(int ionfd, int w, int h, int format,
     switch (format) {
         case HAL_PIXEL_FORMAT_YV12:
         case HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_P:
+        case HAL_PIXEL_FORMAT_YCbCr_420_888:
             *stride = ALIGN(w, 16);
             size = (*stride * h) + (ALIGN(*stride / 2, 16) * h) + ext_size;
             break;
@@ -275,7 +282,8 @@ static int gralloc_alloc_yuv(int ionfd, int w, int h, int format,
 
     *stride = ALIGN(w, 16);
 
-    if (format == HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED) {
+    if (format == HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED ||
+        format == HAL_PIXEL_FORMAT_YCbCr_420_888) {
         ALOGV("HAL_PIXEL_FORMAT_IMPLEMENTATION_DEFINED : usage(%x), flags(%x)\n", usage, ion_flags);
         if ((usage & GRALLOC_USAGE_HW_CAMERA_ZSL) == GRALLOC_USAGE_HW_CAMERA_ZSL) {
             format = HAL_PIXEL_FORMAT_YCbCr_422_I; // YUYV
@@ -311,6 +319,7 @@ static int gralloc_alloc_yuv(int ionfd, int w, int h, int format,
         case HAL_PIXEL_FORMAT_YV12:
         case HAL_PIXEL_FORMAT_EXYNOS_YCbCr_420_P:
         case HAL_PIXEL_FORMAT_YCrCb_420_SP:
+        case HAL_PIXEL_FORMAT_YCbCr_420_888:
             return gralloc_alloc_framework_yuv(ionfd, w, h, format, usage,
                                                ion_flags, hnd, stride);
         case HAL_PIXEL_FORMAT_EXYNOS_YCrCb_420_SP_M:

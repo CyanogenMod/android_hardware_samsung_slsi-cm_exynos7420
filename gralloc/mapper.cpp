@@ -227,6 +227,14 @@ int gralloc_lock(gralloc_module_t const* module,
         return -EINVAL;
 
     private_handle_t* hnd = (private_handle_t*)handle;
+
+    if (hnd->format == HAL_PIXEL_FORMAT_YCbCr_420_888)
+    {
+        ALOGE("%s: Buffers with format YCbCr_420_888 must be locked using"
+            " (*lock_ycbcr)\n", __func__);
+        return -EINVAL;
+    }
+
     if (!hnd->base)
         gralloc_map(module, hnd);
     *vaddr = (void*)hnd->base;
@@ -235,6 +243,85 @@ int gralloc_lock(gralloc_module_t const* module,
         vaddr[1] = (void*)hnd->base1;
     if (hnd->fd2 >= 0)
         vaddr[2] = (void*)hnd->base2;
+
+    return 0;
+}
+
+int gralloc_lock_ycbcr(gralloc_module_t const* module,
+                              buffer_handle_t handle, int usage,
+                              int l, int t, int w, int h,
+                              struct android_ycbcr *ycbcr)
+{
+    if (private_handle_t::validate(handle) < 0) {
+        ALOGE("%s: Locking invalid buffer %p, returning error", __func__, handle);
+        return -EINVAL;
+    }
+
+    private_handle_t* hnd = (private_handle_t*)handle;
+
+    /*
+    if (hnd->flags & private_handle_t::PRIV_FLAGS_USES_UMP
+            || hnd->flags & private_handle_t::PRIV_FLAGS_USES_ION) {
+        hnd->writeOwner = usage & GRALLOC_USAGE_SW_WRITE_MASK;
+    }
+    */
+
+    /* NOTE: width = stride */
+    if (usage & (GRALLOC_USAGE_SW_READ_MASK | GRALLOC_USAGE_SW_WRITE_MASK)) {
+        char* base = (char*)hnd->base;
+        int y_stride = hnd->width;
+        /* Ensure height is aligned for subsampled chroma before calculating buffer parameters */
+        int adjusted_height = ALIGN(hnd->height, 2);
+        int y_size =  y_stride * adjusted_height;
+
+        int u_offset = 0;
+        int v_offset = 0;
+        int c_stride = 0;
+        int step = 0;
+
+        switch (hnd->format) {
+        case HAL_PIXEL_FORMAT_YCbCr_420_888:
+            c_stride = y_stride;
+            /* Y plane, UV plane */
+            u_offset = y_size;
+            v_offset = y_size + 1;
+            step = 2;
+            break;
+
+        case HAL_PIXEL_FORMAT_YCrCb_420_SP:
+            c_stride = y_stride;
+            /* Y plane, UV plane */
+            v_offset = y_size;
+            u_offset = y_size + 1;
+            step = 2;
+            break;
+
+        case HAL_PIXEL_FORMAT_YV12:
+        {
+            int c_size;
+
+            /* Stride alignment set to 16 as the SW access flags were set */
+            c_stride = ALIGN(hnd->width / 2, 16);
+            c_size = c_stride * (adjusted_height / 2);
+            /* Y plane, V plane, U plane */
+            v_offset = y_size;
+            u_offset = y_size + c_size;
+            step = 1;
+            break;
+        }
+
+        default:
+            ALOGE("%s: Can't lock buffer %p: wrong format %d", __func__, hnd, hnd->format);
+            return -EINVAL;
+        }
+
+        ycbcr->y = base;
+        ycbcr->cb = base + u_offset;
+        ycbcr->cr = base + v_offset;
+        ycbcr->ystride = y_stride;
+        ycbcr->cstride = c_stride;
+        ycbcr->chroma_step = step;
+    }
 
     return 0;
 }
