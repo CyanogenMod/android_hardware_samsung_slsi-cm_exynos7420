@@ -124,13 +124,16 @@ ionfd: -1,
 static unsigned int _select_heap(int usage)
 {
     unsigned int heap_mask;
+
+    ALOGV("%s: usage mask: %d\n", __func__, usage);
+
     if (usage & GRALLOC_USAGE_PROTECTED)
         heap_mask = ION_HEAP_EXYNOS_CONTIG_MASK;
     else
         heap_mask = ION_HEAP_SYSTEM_MASK;
 
     if (usage & GRALLOC_USAGE_GPU_BUFFER)
-        heap_mask = ION_HEAP_EXYNOS_CONTIG_MASK;
+        ALOGE("%s: ignoring GRALLOC_USAGE_GPU_BUFFER!\n", __func__);
 
     return heap_mask;
 }
